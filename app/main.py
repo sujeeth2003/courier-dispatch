@@ -12,3 +12,6 @@ from app.routers import couriers, orders
 async def lifespan(app: FastAPI):
     await create_all()
     yield
+
+
+app = FastAPI(title="Courier Dispatch", lifespan=lifespan)

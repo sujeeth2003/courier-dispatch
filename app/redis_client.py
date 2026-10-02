@@ -13,3 +13,9 @@ def get_redis() -> Redis:
     if _redis is None:
         _redis = from_url(settings.redis_url, decode_responses=True)
     return _redis
+
+
+async def set_courier_location(courier_id: str, lat: float, lon: float) -> None:
+    redis = get_redis()
+    await redis.geoadd(COURIER_GEO_KEY, (lon, lat, courier_id))
+    await redis.set(f"{COURIER_LAST_SEEN_PREFIX}{courier_id}", "now", ex=settings.courier_stale_seconds)

@@ -42,3 +42,15 @@ async def test_order_stays_pending_until_batch_runs(client, batch_mode):
     order = (await client.post("/orders", json=ORDER)).json()
     assert order["status"] == "pending"
     assert order["courier_id"] is None
+
+
+async def test_batch_assigns_pending_orders_to_distinct_couriers(client, batch_mode):
+    courier_ids = await _add_couriers(client, 3)
+    order_ids = [(await client.post("/orders", json=ORDER)).json()["id"] for _ in range(3)]
+
+    assert await _run_batch_once() == 3
+
+    orders = [(await client.get(f"/orders/{oid}")).json() for oid in order_ids]
+    assigned = [o["courier_id"] for o in orders]
+    assert all(o["status"] == "assigned" for o in orders)
+    assert sorted(assigned) == sorted(courier_ids)

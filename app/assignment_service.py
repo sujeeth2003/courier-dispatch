@@ -1,11 +1,11 @@
 """Handles assigning an order to a courier with concurrency-safe row locking."""
 import time
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.matching.geo import haversine_km
-from app.metrics import assignment_latency_seconds, assignments_total
+from app.metrics import assignment_latency_seconds, assignments_total, pending_orders_gauge
 from app.models import Assignment, Courier, CourierStatus, Order, OrderStatus
 from app.redis_client import get_redis, nearby_couriers
 
@@ -55,3 +55,10 @@ async def assign_order_nearest(session: AsyncSession, order: Order) -> Assignmen
         return assignment
 
     return None
+
+
+async def refresh_pending_gauge(session: AsyncSession) -> None:
+    count = await session.scalar(
+        select(func.count()).select_from(Order).where(Order.status == OrderStatus.pending)
+    )
+    pending_orders_gauge.set(count or 0)

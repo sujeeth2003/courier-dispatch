@@ -36,3 +36,20 @@ class Courier(Base):
         Enum(CourierStatus, name="courier_status"), default=CourierStatus.available
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    pickup_lat: Mapped[float] = mapped_column(Float)
+    pickup_lon: Mapped[float] = mapped_column(Float)
+    dropoff_lat: Mapped[float] = mapped_column(Float)
+    dropoff_lon: Mapped[float] = mapped_column(Float)
+    status: Mapped[OrderStatus] = mapped_column(
+        Enum(OrderStatus, name="order_status"), default=OrderStatus.pending
+    )
+    courier_id: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False), ForeignKey("couriers.id"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

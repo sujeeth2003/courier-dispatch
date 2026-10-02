@@ -9,3 +9,8 @@ SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 class Base(DeclarativeBase):
     pass
+
+
+async def get_session():
+    async with SessionLocal() as session:
+        yield session

@@ -5,34 +5,9 @@ Requires live Postgres + Redis; skipped otherwise.
 """
 import asyncio
 
-import pytest
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy import text
-
-from app.db import create_all, engine
-from app.main import app
 
 N_ORDERS = 20
 N_COURIERS = 5
-
-
-async def _db_available() -> bool:
-    try:
-        async with engine.connect() as conn:
-            await conn.execute(text("SELECT 1"))
-        return True
-    except Exception:
-        return False
-
-
-@pytest.fixture
-async def client():
-    if not await _db_available():
-        pytest.skip("Postgres not available")
-    await create_all()
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
 
 
 async def test_no_double_assignment_under_concurrency(client):

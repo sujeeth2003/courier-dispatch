@@ -32,3 +32,23 @@ async def test_create_courier_and_order(client):
 async def test_get_unknown_order_404(client):
     resp = await client.get(f"/orders/{uuid.uuid4()}")
     assert resp.status_code == 404
+
+
+async def test_nearest_strategy_assigns_immediately(client):
+    courier = (await client.post("/couriers", params={"name": "Bob"})).json()
+    await client.post(
+        f"/couriers/{courier['id']}/location", json={"lat": 37.77, "lon": -122.41}
+    )
+    order = (
+        await client.post(
+            "/orders",
+            json={
+                "pickup_lat": 37.77,
+                "pickup_lon": -122.41,
+                "dropoff_lat": 37.78,
+                "dropoff_lon": -122.42,
+            },
+        )
+    ).json()
+    assert order["status"] == "assigned"
+    assert order["courier_id"] == courier["id"]

@@ -32,6 +32,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://courier:courier@db:5432/courier_dispatch
       REDIS_URL: redis://redis:6379/0
+      MATCHER_STRATEGY: ${MATCHER_STRATEGY:-nearest}
     depends_on:
       db:
         condition: service_healthy

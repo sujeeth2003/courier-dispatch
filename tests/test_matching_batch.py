@@ -17,3 +17,13 @@ def test_match_orders_batch_assigns_all_when_enough_couriers():
     assert len(results) == 5
     assigned_couriers = [c for _, c, _ in results]
     assert len(assigned_couriers) == len(set(assigned_couriers))
+
+
+def test_match_orders_batch_no_double_assignment_more_orders_than_couriers():
+    orders, couriers = _synthetic(10, 4)
+    results = match_orders_batch(orders, couriers)
+    assert len(results) == 4
+    assigned_couriers = [c for _, c, _ in results]
+    assert len(assigned_couriers) == len(set(assigned_couriers))
+    assigned_orders = [o for o, _, _ in results]
+    assert len(assigned_orders) == len(set(assigned_orders))

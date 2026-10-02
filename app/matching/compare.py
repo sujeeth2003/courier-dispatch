@@ -33,3 +33,29 @@ def generate_synthetic(n_orders: int, n_couriers: int, seed: int = 42):
         for i in range(n_couriers)
     ]
     return orders, couriers
+
+
+def run_comparison(n_orders: int = 50, n_couriers: int = 60, seed: int = 42) -> dict:
+    orders, couriers = generate_synthetic(n_orders, n_couriers, seed)
+
+    nearest_results = match_orders_nearest(orders, couriers)
+    batch_results = match_orders_batch(orders, couriers)
+
+    nearest_distances = [d for _, _, d in nearest_results]
+    batch_distances = [d for _, _, d in batch_results]
+
+    summary = {
+        "n_orders": n_orders,
+        "n_couriers": n_couriers,
+        "nearest": {
+            "assigned": len(nearest_results),
+            "avg_pickup_distance_km": statistics.mean(nearest_distances) if nearest_distances else None,
+            "total_pickup_distance_km": sum(nearest_distances),
+        },
+        "batch": {
+            "assigned": len(batch_results),
+            "avg_pickup_distance_km": statistics.mean(batch_distances) if batch_distances else None,
+            "total_pickup_distance_km": sum(batch_distances),
+        },
+    }
+    return summary

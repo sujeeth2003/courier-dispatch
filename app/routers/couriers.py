@@ -28,3 +28,11 @@ async def update_location(
         raise HTTPException(status_code=404, detail="courier not found")
     await set_courier_location(courier_id, payload.lat, payload.lon)
     location_updates_total.inc()
+
+
+@router.get("/{courier_id}", response_model=CourierOut)
+async def get_courier(courier_id: str, session: AsyncSession = Depends(get_session)):
+    courier = await session.get(Courier, courier_id)
+    if courier is None:
+        raise HTTPException(status_code=404, detail="courier not found")
+    return courier

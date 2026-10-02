@@ -57,9 +57,16 @@ assignment, and a measurable comparison between two matching strategies.
   distance across the batch rather than each order's local optimum. Falls back to a
   greedy assignment if scipy isn't installed.
 
-The live API uses v1 by default (assignment happens synchronously on order creation,
-which is what a demo of real-time dispatch should show). `app/matching/compare.py` is
-a standalone script that runs both strategies over the same synthetic dataset and
+Both run in the live API. Pick one with the `MATCHER_STRATEGY` env var:
+
+- `nearest` (default): `POST /orders` assigns synchronously.
+- `batch`: `POST /orders` returns a `pending` order; a background worker
+  (`app/batch_service.py`) runs every `BATCH_WINDOW_SECONDS` (default 2.0), locks all
+  pending orders and free couriers with `FOR UPDATE SKIP LOCKED`, and solves them in
+  one Hungarian assignment. Orders wait up to one window for a courier, which shows up
+  in `assignment_latency_seconds`.
+
+`app/matching/compare.py` is a standalone script that runs both strategies over the same synthetic dataset and
 reports average pickup distance, so the trade-off is directly measurable.
 
 ## Running locally
@@ -92,7 +99,7 @@ pytest
 
 - `test_matching_nearest.py` / `test_matching_batch.py` — pure unit tests, no infra
   required (haversine correctness, nearest selection, batch optimality vs. greedy).
-- `test_orders_api.py` / `test_concurrency.py` — integration tests against a real
+- `test_orders_api.py` / `test_batch_strategy.py` / `test_concurrency.py` — integration tests against a real
   Postgres + Redis; they auto-skip if the DB isn't reachable, and run fully in CI
   (`.github/workflows/ci.yml` starts both as services). The concurrency test fires 20
   simultaneous `POST /orders` requests at a pool of 5 couriers and asserts zero

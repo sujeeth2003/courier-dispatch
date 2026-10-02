@@ -31,3 +31,15 @@ def test_match_orders_batch_no_double_assignment_more_orders_than_couriers():
 
 def test_match_orders_batch_empty_inputs():
     assert match_orders_batch([], []) == []
+
+
+def test_batch_total_distance_not_worse_than_nearest():
+    orders, couriers = _synthetic(6, 6)
+    batch_results = match_orders_batch(orders, couriers)
+    nearest_results = match_orders_nearest(orders, couriers)
+
+    batch_total = sum(d for _, _, d in batch_results)
+    nearest_total = sum(d for _, _, d in nearest_results)
+
+    # Hungarian algorithm minimizes total distance, so it should never be worse
+    assert batch_total <= nearest_total + 1e-9

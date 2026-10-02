@@ -32,3 +32,11 @@ async def create_order(payload: OrderCreate, session: AsyncSession = Depends(get
     pending_orders_gauge.set(len(result.scalars().all()))
 
     return order
+
+
+@router.get("/{order_id}", response_model=OrderOut)
+async def get_order(order_id: str, session: AsyncSession = Depends(get_session)):
+    order = await session.get(Order, order_id)
+    if order is None:
+        raise HTTPException(status_code=404, detail="order not found")
+    return order

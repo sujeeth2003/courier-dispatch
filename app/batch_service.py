@@ -1,10 +1,14 @@
 """v2 runtime: assign all pending orders together, once per batch window."""
+import asyncio
 import logging
 from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.assignment_service import refresh_pending_gauge
+from app.config import settings
+from app.db import SessionLocal
 from app.matching.batch import match_orders_batch
 from app.matching.nearest import CourierLoc, OrderLoc
 from app.metrics import assignment_latency_seconds, assignments_total
@@ -66,3 +70,16 @@ async def assign_pending_batch(session: AsyncSession) -> int:
         assignments_total.labels(strategy="batch").inc()
         assignment_latency_seconds.observe((now - order.created_at).total_seconds())
     return len(matches)
+
+
+async def run_batch_loop() -> None:
+    """Run assign_pending_batch every batch_window_seconds until cancelled."""
+    while True:
+        await asyncio.sleep(settings.batch_window_seconds)
+        try:
+            async with SessionLocal() as session:
+                await assign_pending_batch(session)
+                await session.commit()
+                await refresh_pending_gauge(session)
+        except Exception:
+            logger.exception("batch assignment failed")

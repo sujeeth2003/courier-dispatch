@@ -11,3 +11,9 @@ from app.db import Base
 
 def gen_uuid() -> str:
     return str(uuid.uuid4())
+
+
+class CourierStatus(str, enum.Enum):
+    available = "available"
+    busy = "busy"
+    offline = "offline"

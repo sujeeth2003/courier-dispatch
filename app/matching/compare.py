@@ -59,3 +59,10 @@ def run_comparison(n_orders: int = 50, n_couriers: int = 60, seed: int = 42) -> 
         },
     }
     return summary
+
+
+if __name__ == "__main__":
+    result = run_comparison()
+    print(json.dumps(result, indent=2))
+    with open("compare_results.json", "w") as f:
+        json.dump(result, f, indent=2)

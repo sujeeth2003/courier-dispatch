@@ -14,3 +14,8 @@ class Base(DeclarativeBase):
 async def get_session():
     async with SessionLocal() as session:
         yield session
+
+
+async def create_all():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)

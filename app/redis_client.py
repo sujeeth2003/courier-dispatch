@@ -33,3 +33,8 @@ async def nearby_couriers(lat: float, lon: float, radius_km: float = 50.0, count
         sort="ASC",
     )
     return results
+
+
+async def remove_courier_location(courier_id: str) -> None:
+    redis = get_redis()
+    await redis.zrem(COURIER_GEO_KEY, courier_id)

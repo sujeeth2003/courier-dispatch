@@ -66,3 +66,24 @@ async def test_batch_leaves_extra_orders_pending(client, batch_mode):
     async with SessionLocal() as session:
         strategies = (await session.execute(select(Assignment.strategy))).scalars().all()
     assert strategies == ["batch", "batch"]
+
+
+async def test_batch_loop_assigns_within_the_window(client, batch_mode, monkeypatch):
+    monkeypatch.setattr(settings, "batch_window_seconds", 0.2)
+    await _add_couriers(client, 1)
+    order_id = (await client.post("/orders", json=ORDER)).json()["id"]
+
+    worker = asyncio.create_task(run_batch_loop())
+    try:
+        order = {}
+        for _ in range(30):
+            order = (await client.get(f"/orders/{order_id}")).json()
+            if order["status"] == "assigned":
+                break
+            await asyncio.sleep(0.1)
+    finally:
+        worker.cancel()
+        with suppress(asyncio.CancelledError):
+            await worker
+
+    assert order["status"] == "assigned"

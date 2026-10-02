@@ -27,3 +27,7 @@ def test_match_orders_batch_no_double_assignment_more_orders_than_couriers():
     assert len(assigned_couriers) == len(set(assigned_couriers))
     assigned_orders = [o for o, _, _ in results]
     assert len(assigned_orders) == len(set(assigned_orders))
+
+
+def test_match_orders_batch_empty_inputs():
+    assert match_orders_batch([], []) == []

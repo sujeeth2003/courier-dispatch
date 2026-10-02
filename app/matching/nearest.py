@@ -28,3 +28,22 @@ def find_nearest_courier(order: OrderLoc, couriers: list[CourierLoc]) -> tuple[C
     )
     dist = haversine_km(order.pickup_lat, order.pickup_lon, best.lat, best.lon)
     return best, dist
+
+
+def match_orders_nearest(
+    orders: list[OrderLoc], couriers: list[CourierLoc]
+) -> list[tuple[str, str, float]]:
+    """Process orders one at a time in order, greedily taking the nearest still-free courier.
+
+    Returns a list of (order_id, courier_id, distance_km).
+    """
+    available = list(couriers)
+    results = []
+    for order in orders:
+        found = find_nearest_courier(order, available)
+        if found is None:
+            continue
+        courier, dist = found
+        results.append((order.id, courier.id, dist))
+        available = [c for c in available if c.id != courier.id]
+    return results

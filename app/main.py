@@ -15,3 +15,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Courier Dispatch", lifespan=lifespan)
+
+app.include_router(orders.router)
+app.include_router(couriers.router)

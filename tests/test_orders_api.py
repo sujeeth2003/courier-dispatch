@@ -53,3 +53,8 @@ async def test_create_courier_and_order(client):
     assert order_resp.status_code == 201
     order = order_resp.json()
     assert order["status"] in ("assigned", "pending")
+
+
+async def test_get_unknown_order_404(client):
+    resp = await client.get(f"/orders/{uuid.uuid4()}")
+    assert resp.status_code == 404

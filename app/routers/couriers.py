@@ -17,3 +17,14 @@ async def create_courier(name: str = "Courier", session: AsyncSession = Depends(
     await session.commit()
     await session.refresh(courier)
     return courier
+
+
+@router.post("/{courier_id}/location", status_code=204)
+async def update_location(
+    courier_id: str, payload: CourierLocationUpdate, session: AsyncSession = Depends(get_session)
+):
+    courier = await session.get(Courier, courier_id)
+    if courier is None:
+        raise HTTPException(status_code=404, detail="courier not found")
+    await set_courier_location(courier_id, payload.lat, payload.lon)
+    location_updates_total.inc()

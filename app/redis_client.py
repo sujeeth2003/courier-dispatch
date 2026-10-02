@@ -19,3 +19,17 @@ async def set_courier_location(courier_id: str, lat: float, lon: float) -> None:
     redis = get_redis()
     await redis.geoadd(COURIER_GEO_KEY, (lon, lat, courier_id))
     await redis.set(f"{COURIER_LAST_SEEN_PREFIX}{courier_id}", "now", ex=settings.courier_stale_seconds)
+
+
+async def nearby_couriers(lat: float, lon: float, radius_km: float = 50.0, count: int = 20):
+    redis = get_redis()
+    results = await redis.geosearch(
+        COURIER_GEO_KEY,
+        longitude=lon,
+        latitude=lat,
+        radius=radius_km,
+        unit="km",
+        count=count,
+        sort="ASC",
+    )
+    return results

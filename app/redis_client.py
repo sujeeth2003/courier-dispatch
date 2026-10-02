@@ -38,3 +38,11 @@ async def nearby_couriers(lat: float, lon: float, radius_km: float = 50.0, count
 async def remove_courier_location(courier_id: str) -> None:
     redis = get_redis()
     await redis.zrem(COURIER_GEO_KEY, courier_id)
+
+
+async def courier_positions(courier_ids: list[str]) -> dict[str, tuple[float, float]]:
+    """Return {courier_id: (lat, lon)} for every id present in the geo index."""
+    if not courier_ids:
+        return {}
+    found = await get_redis().geopos(COURIER_GEO_KEY, *courier_ids)
+    return {cid: (pos[1], pos[0]) for cid, pos in zip(courier_ids, found) if pos is not None}

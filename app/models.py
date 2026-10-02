@@ -17,3 +17,11 @@ class CourierStatus(str, enum.Enum):
     available = "available"
     busy = "busy"
     offline = "offline"
+
+
+class OrderStatus(str, enum.Enum):
+    pending = "pending"
+    assigned = "assigned"
+    picked_up = "picked_up"
+    delivered = "delivered"
+    cancelled = "cancelled"

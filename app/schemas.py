@@ -25,3 +25,11 @@ class OrderOut(BaseModel):
 class CourierLocationUpdate(BaseModel):
     lat: float = Field(ge=-90, le=90)
     lon: float = Field(ge=-180, le=180)
+
+
+class CourierOut(BaseModel):
+    id: str
+    name: str
+    status: CourierStatus
+
+    model_config = {"from_attributes": True}

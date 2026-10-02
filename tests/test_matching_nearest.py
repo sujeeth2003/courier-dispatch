@@ -27,3 +27,19 @@ def test_find_nearest_courier_picks_closest():
 def test_find_nearest_courier_no_couriers():
     order = OrderLoc(id="o1", pickup_lat=0.0, pickup_lon=0.0)
     assert find_nearest_courier(order, []) is None
+
+
+def test_match_orders_nearest_no_double_assignment():
+    orders = [OrderLoc(id=f"o{i}", pickup_lat=0.0, pickup_lon=0.0) for i in range(3)]
+    couriers = [CourierLoc(id="c1", lat=0.001, lon=0.001), CourierLoc(id="c2", lat=0.002, lon=0.002)]
+
+    results = match_orders_nearest(orders, couriers)
+
+    assert len(results) == 2  # only 2 couriers available for 3 orders
+    assigned_couriers = [courier_id for _, courier_id, _ in results]
+    assert len(assigned_couriers) == len(set(assigned_couriers))
+
+
+def test_match_orders_nearest_empty_inputs():
+    assert match_orders_nearest([], []) == []
+    assert match_orders_nearest([OrderLoc(id="o1", pickup_lat=0, pickup_lon=0)], []) == []

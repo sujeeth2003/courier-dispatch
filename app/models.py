@@ -53,3 +53,14 @@ class Order(Base):
         UUID(as_uuid=False), ForeignKey("couriers.id"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Assignment(Base):
+    __tablename__ = "assignments"
+
+    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    order_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("orders.id"))
+    courier_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("couriers.id"))
+    pickup_distance_km: Mapped[float] = mapped_column(Float)
+    strategy: Mapped[str] = mapped_column(String, default="nearest")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

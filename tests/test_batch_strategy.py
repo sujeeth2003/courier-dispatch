@@ -54,3 +54,15 @@ async def test_batch_assigns_pending_orders_to_distinct_couriers(client, batch_m
     assigned = [o["courier_id"] for o in orders]
     assert all(o["status"] == "assigned" for o in orders)
     assert sorted(assigned) == sorted(courier_ids)
+
+
+async def test_batch_leaves_extra_orders_pending(client, batch_mode):
+    await _add_couriers(client, 2)
+    for _ in range(5):
+        await client.post("/orders", json=ORDER)
+
+    assert await _run_batch_once() == 2
+
+    async with SessionLocal() as session:
+        strategies = (await session.execute(select(Assignment.strategy))).scalars().all()
+    assert strategies == ["batch", "batch"]

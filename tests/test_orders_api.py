@@ -29,3 +29,27 @@ async def client():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+
+async def test_create_courier_and_order(client):
+    courier_resp = await client.post("/couriers", params={"name": "Alice"})
+    assert courier_resp.status_code == 201
+    courier = courier_resp.json()
+
+    loc_resp = await client.post(
+        f"/couriers/{courier['id']}/location", json={"lat": 37.7749, "lon": -122.4194}
+    )
+    assert loc_resp.status_code == 204
+
+    order_resp = await client.post(
+        "/orders",
+        json={
+            "pickup_lat": 37.775,
+            "pickup_lon": -122.419,
+            "dropoff_lat": 37.78,
+            "dropoff_lon": -122.42,
+        },
+    )
+    assert order_resp.status_code == 201
+    order = order_resp.json()
+    assert order["status"] in ("assigned", "pending")
